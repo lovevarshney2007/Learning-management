@@ -1,30 +1,55 @@
-import express from "express";
-import dotenv from "dotenv";
-import morgan from "morgan";
-import cors from "cors";
-import connectDb from "./config/db.js";
-import courseRoutes from "./routes/courseRoutes.js";
+import Course from "../models/courseModel.js";
 
-dotenv.config();
-connectDb();
+// ✅ Get all courses
+export const getAllCourses = async (req, res) => {
+  try {
+    const courses = await Course.find();
+    res.status(200).json({
+      success: true,
+      message: "All courses fetched successfully",
+      data: courses,
+    });
+  } catch (error) {
+    console.error("Error fetching courses:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching courses",
+      error: error.message,
+    });
+  }
+};
 
-const app = express();
+// ✅ Create new course
+export const createCourse = async (req, res) => {
+  try {
+    const { title, description, videoUrl } = req.body;
 
-app.use(cors({
-  origin: "*", 
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
+    if (!title || !description || !videoUrl) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide title, description and videoUrl",
+      });
+    }
 
-app.use(express.json());
-app.use(morgan("dev"));
+    const newCourse = new Course({
+      title,
+      description,
+      videoUrl,
+    });
 
-// Routes
-app.use("/api/courses", courseRoutes);
+    await newCourse.save();
 
-app.get("/", (req, res) => {
-  res.send("Course API is running...");
-});
-
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+    res.status(201).json({
+      success: true,
+      message: "Course created successfully",
+      data: newCourse,
+    });
+  } catch (error) {
+    console.error("Error creating course:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error creating course",
+      error: error.message,
+    });
+  }
+};

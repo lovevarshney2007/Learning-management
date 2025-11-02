@@ -9,18 +9,22 @@ dotenv.config();
 connectDb();
 
 const app = express();
+
+app.use(cors({
+  origin: "*", 
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
 app.use(express.json());
-app.use(cors());
 app.use(morgan("dev"));
 
+// Routes
 app.use("/api/courses", courseRoutes);
 
 app.get("/", (req, res) => {
   res.send("Course API is running...");
 });
-
-app.use("/api/courses", courseRoutes);
-
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
